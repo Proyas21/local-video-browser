@@ -9,7 +9,17 @@ app.use(cors());
 
 app.get("/", (req, res) => {
     const info = { location: rootLocation, children: getDirInfo(rootLocation) };
+    console.log("root");
+
     return res.json(JSON.stringify(info));
+});
+app.get("/browse/*", (req, res) => {
+    const reqPath: string = req.url.replace("/browse", "").replace("%20", " ").replace(":", "");
+
+    if (!fs.existsSync(path.join(rootLocation, reqPath))) return res.status(404).send("location not found");
+    const info = { location: reqPath, children: getDirInfo(path.join(rootLocation, reqPath)) };
+    return res.json(JSON.stringify(info));
+
 });
 
 app.listen(3000, () => {
