@@ -8,13 +8,17 @@ const app = express();
 app.use(cors());
 
 app.get("/", (req, res) => {
-    const info = { location: rootLocation, children: getDirInfo(rootLocation) };
+    // const info = { location: rootLocation, children: getDirInfo(rootLocation) };
     console.log("root");
 
-    return res.json(JSON.stringify(info));
+    // return res.json(JSON.stringify(info));
+    return res.send("root");
 });
 app.get("/browse/*", (req, res) => {
-    const reqPath: string = req.url.replace("/browse", "").replace("%20", " ").replace(":", "");
+    console.log(req.url);
+    const reqPath: string = req.url.replace("/browse", "").replace(/%20/g, " ").replace(/%C8%A7/g, ".").replace(":", "");
+    console.log(reqPath);
+
 
     if (!fs.existsSync(path.join(rootLocation, reqPath))) return res.status(404).send("location not found");
     const info = { location: reqPath, children: getDirInfo(path.join(rootLocation, reqPath)) };
@@ -36,7 +40,7 @@ const rootLocation = "C:/Users/abyas/Desktop/tuts";
 
 function getDirInfo(location: string) {
     // if fs.lstatSync(path.join(location, item)).isDirectory()
-    const ls = fs.readdirSync(location);
+    const ls = fs.readdirSync(location).filter(item => !item.startsWith('.'));
     const out = ls.map(item => {
         const lstat = fs.lstatSync(path.join(location, item));
         if (lstat.isDirectory()) return new Dir(item, location, getChildDirInfo(path.join(location, item)));

@@ -4,7 +4,7 @@ import DirInfo, { ChildDir, Dir, File, FsItems } from "./models/DirInfo";
 import formatsByExt from "./misc/formatsByExt.json";
 import FileCard from "./components/fileCard";
 import FolderCard from "./components/folderCard";
-import VideoCard from "./components/videocard";
+import VideoCard from "./components/videoCard";
 
 export default function App() {
   const [dirInfo, setDirInfo] = useState<DirInfo>();
@@ -12,7 +12,10 @@ export default function App() {
   const [dirList, setDirList] = useState<ChildDir[]>();
   const [fileList, setFileList] = useState<File[]>();
   useEffect(() => {
-    fetch("http://127.0.0.1:3000/browse/Mithu%20b2")
+    fetch(
+      "http://127.0.0.1:3000/browse/" +
+        location.pathname.replace("/browse/", "")
+    )
       .then((res) => res.json())
       .then((info) => setDirInfo(JSON.parse(info)));
   }, []);
@@ -23,6 +26,19 @@ export default function App() {
     dirInfo?.children.forEach((item) => {
       switch (item.type) {
         case FsItems.Dir:
+          if (
+            item.children.length === 1 &&
+            item.children[0]?.type == FsItems.File &&
+            formatsByExt.video.includes(
+              item.children[0].extension.replace(".", "")
+            )
+          ) {
+            item.children[0].name = item.name + "/" + item.children[0].name;
+
+            item = item.children[0];
+            vdo.push(item);
+            break;
+          }
           dir.push(item);
           break;
         case FsItems.File:
@@ -39,12 +55,6 @@ export default function App() {
     setFileList(file);
     setDirList(dir);
   }, [dirInfo]);
-
-  const dirClick = () => {
-    fetch("http://127.0.0.1:3000/")
-      .then((res) => res.json())
-      .then((info) => setDirInfo(JSON.parse(info)));
-  };
   return (
     <div className="app">
       <h2>{dirInfo?.location}</h2>
